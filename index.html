@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Krishi Nexus — India Agricultural Labour Network</title>
+  
+  <!-- Leaflet OpenStreetMap API -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <link rel = "stylesheet" href="style.css">
+
+
+
+  
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">🌾</div>
+        <div>
+          <b>KRISHI NEXUS</b>
+          <small id="sloganText">Tech Se Kheti Growth</small>
+        </div>
+      </div>
+
+      <div class="role-switch">
+        <button class="role active" id="roleFarmerBtn" onclick="setRole('farmer', this)">
+          👨‍🌾 <span id="farmerRoleText">Farmer</span>
+        </button>
+        <button class="role" id="roleLabourBtn" onclick="setRole('labour', this)">
+          🧑‍🌾 <span id="labourRoleText">Labour</span>
+        </button>
+      </div>
+
+      <nav>
+        <button class="nav active" data-page="dashboard">▦ <span data-i18n="navDashboard">Dashboard</span></button>
+        <button class="nav" data-page="find">⌕ <span data-i18n="navFind">Find Labour</span></button>
+        <button class="nav" data-page="farmers">👨‍🌾 <span data-i18n="navFarmers">Farmer Network</span></button>
+        <button class="nav" data-page="labours">🧑‍🌾 <span data-i18n="navLabour">Labour Network</span></button>
+        <button class="nav" data-page="bookings">▣ <span data-i18n="navBookings">Bookings</span></button>
+        <button class="nav" data-page="ratings">⭐ <span data-i18n="navRatings">Ratings & Trust</span></button>
+        <button class="nav" data-page="profile">◎ <span data-i18n="navProfile">My Profile</span></button>
+      </nav>
+
+      <div class="side-foot">
+        <span class="pill" data-i18n="panIndiaTag">ALL 36 STATES & UTs</span>
+        <p data-i18n="footNote">Pan-India Agricultural Work & Trust Network</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+      <header>
+        <div>
+          <h1 id="title">Krishi Nexus Dashboard</h1>
+          <p id="subtitle">Connect farmers with verified, available agricultural workers.</p>
+        </div>
+        <div class="head-actions">
+          <button class="lang" onclick="languagePicker()">🌐 <span id="langText">English</span></button>
+          <button class="bell" onclick="notifications()">🔔</button>
+          <button class="primary" onclick="registerModal()">+ <span data-i18n="btnRegister">Register</span></button>
+        </div>
+      </header>
+
+      <section id="page"></section>
+    </main>
+  </div>
+
+  <!-- WhatsApp Style Hidden Photo Input -->
+  <input type="file" id="whatsappPhotoInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+
+  <!-- Global Modal Dialog -->
+  <div class="modal hidden" id="modal">
+    <div class="modal-card">
+      <button class="x" onclick="closeModal()">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script src = "script.js"></script>
+</body>
+</html>
