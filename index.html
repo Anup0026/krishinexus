@@ -1,89 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Krishi Nexus — India Agricultural Labour Network</title>
-  
-  <!-- Leaflet OpenStreetMap API -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <link rel = "stylesheet" href="style.css">
-
-
-
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krishi Nexus - Real OTP Auth</title>
+  <style>
+    /* Basic toast notification styling */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+    }
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+    @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+  </style>
 </head>
 <body>
-  <div class="app">
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">🌾</div>
-        <div>
-          <b>KRISHI NEXUS</b>
-          <small id="sloganText">Tech Se Kheti Growth</small>
-        </div>
-      </div>
 
-      <div class="role-switch">
-        <button class="role active" id="roleFarmerBtn" onclick="setRole('farmer', this)">
-          👨‍🌾 <span id="farmerRoleText">Farmer</span>
-        </button>
-        <button class="role" id="roleLabourBtn" onclick="setRole('labour', this)">
-          🧑‍🌾 <span id="labourRoleText">Labour</span>
-        </button>
-      </div>
+  <!-- Toast Notification Element -->
+  <div id="toast"></div>
 
-      <nav>
-        <button class="nav active" data-page="dashboard">▦ <span data-i18n="navDashboard">Dashboard</span></button>
-        <button class="nav" data-page="find">⌕ <span data-i18n="navFind">Find Labour</span></button>
-        <button class="nav" data-page="farmers">👨‍🌾 <span data-i18n="navFarmers">Farmer Network</span></button>
-        <button class="nav" data-page="labours">🧑‍🌾 <span data-i18n="navLabour">Labour Network</span></button>
-        <button class="nav" data-page="bookings">▣ <span data-i18n="navBookings">Bookings</span></button>
-        <button class="nav" data-page="ratings">⭐ <span data-i18n="navRatings">Ratings & Trust</span></button>
-        <button class="nav" data-page="profile">◎ <span data-i18n="navProfile">My Profile</span></button>
-      </nav>
+  <!-- Hidden file input for WhatsApp-style profile photo upload -->
+  <input type="file" id="whatsappPhotoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
 
-      <div class="side-foot">
-        <span class="pill" data-i18n="panIndiaTag">ALL 36 STATES & UTs</span>
-        <p data-i18n="footNote">Pan-India Agricultural Work & Trust Network</p>
-      </div>
-    </aside>
+  <script>
+    // ==========================================
+    // 1. API CONFIGURATION
+    // ==========================================
+    // Automatically switches between localhost for development and your live Render backend for production
+    const API_BASE_URL = window.location.hostname === "localhost"
+      ? "http://localhost:5000"
+      : "https://your-render-app-name.onrender.com"; // <-- Replace with your actual Render backend URL
 
-    <!-- Main Content Area -->
-    <main>
-      <header>
-        <div>
-          <h1 id="title">Krishi Nexus Dashboard</h1>
-          <p id="subtitle">Connect farmers with verified, available agricultural workers.</p>
-        </div>
-        <div class="head-actions">
-          <button class="lang" onclick="languagePicker()">🌐 <span id="langText">English</span></button>
-          <button class="bell" onclick="notifications()">🔔</button>
-          <button class="primary" onclick="registerModal()">+ <span data-i18n="btnRegister">Register</span></button>
-        </div>
-      </header>
+    // ==========================================
+    // 2. MULTI-LANGUAGE DICTIONARY & STATE
+    // ==========================================
+    const I18N = {
+      English: {
+        sendOtp: "Send OTP",
+        verifyOtp: "Verify & Save",
+        otpPlaceholder: "6-digit OTP"
+      },
+      Hindi: {
+        sendOtp: "OTP भेजें",
+        verifyOtp: "OTP सत्यापित कर सेव करें",
+        otpPlaceholder: "6-अंकों का OTP"
+      }
+    };
 
-      <section id="page"></section>
-    </main>
-  </div>
+    let LANGUAGE = localStorage.getItem("kn_language") || "English";
+    let currentPhotoUploadRole = "farmer";
 
-  <!-- WhatsApp Style Hidden Photo Input -->
-  <input type="file" id="whatsappPhotoInput" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+    function t(key) {
+      return (I18N[LANGUAGE] && I18N[LANGUAGE][key]) || I18N["English"][key] || key;
+    }
 
-  <!-- Global Modal Dialog -->
-  <div class="modal hidden" id="modal">
-    <div class="modal-card">
-      <button class="x" onclick="closeModal()">✕</button>
-      <div id="modalBody"></div>
-    </div>
-  </div>
+    // ==========================================
+    // 3. UTILITY FUNCTIONS (Toast & Avatar)
+    // ==========================================
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 3200);
+    }
 
-  <!-- Toast Notification -->
-  <div id="toast" class="toast"></div>
+    function triggerPhotoUpload(role) {
+      currentPhotoUploadRole = role;
+      document.getElementById("whatsappPhotoInput").click();
+    }
 
-  <script src = "script.js"></script>
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
+        
+        if (currentPhotoUploadRole === "farmer") {
+          localStorage.setItem("kn_farmer_photo", base64Data);
+          const display = document.getElementById("farmerAvatarDisplay");
+          if (display) display.innerHTML = `<img src="${base64Data}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Farmer Profile">`;
+          toast("Farmer profile photo updated successfully!");
+        } else {
+          localStorage.setItem("kn_labour_photo", base64Data);
+          const display = document.getElementById("labourAvatarDisplay");
+          if (display) display.innerHTML = `<img src="${base64Data}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Labour Profile">`;
+          toast("Labour profile photo updated successfully!");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ==========================================
+    // 4. REAL SMS OTP CLIENT FUNCTIONS
+    // ==========================================
+
+    /**
+     * Sends a real SMS OTP request to the backend server via Fast2SMS
+     */
+    async function handleSendOtp(phoneNumber) {
+      if (!phoneNumber || phoneNumber.length < 10) {
+        toast("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+
+      try {
+        toast("Sending real SMS OTP...");
+        const response = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: phoneNumber })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          toast("Real OTP sent successfully via SMS!");
+          console.log("OTP Sent Response:", data);
+        } else {
+          toast(data.message || "Failed to send OTP.");
+        }
+      } catch (error) {
+        console.error("Network Error (Send OTP):", error);
+        toast("Network connection error. Please check your backend.");
+      }
+    }
+
+    /**
+     * Verifies the OTP entered by the user and logs them in / registers them
+     */
+    async function handleVerifyAndRegister(phoneNumber, enteredOtp, fullName, role) {
+      if (!phoneNumber || !enteredOtp) {
+        toast("Phone number and OTP are required.");
+        return;
+      }
+
+      try {
+        toast("Verifying OTP...");
+        const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: phoneNumber,
+            otp: enteredOtp,
+            fullName: fullName || "Krishi User",
+            role: role || "farmer"
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          toast("Authentication successful!");
+          // Save JWT token and user profile to local storage
+          localStorage.setItem("kn_auth_token", data.token);
+          localStorage.setItem("kn_user_profile", JSON.stringify(data.user));
+          
+          console.log("Logged in user:", data.user);
+          // Redirect or reload dashboard here if needed
+        } else {
+          toast(data.message || "Invalid or expired OTP.");
+        }
+      } catch (error) {
+        console.error("Network Error (Verify OTP):", error);
+        toast("Verification failed due to network error.");
+      }
+    }
+
+    // ==========================================
+    // 5. INITIALIZATION
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("🌾 Krishi Nexus Client Engine loaded with Real SMS OTP support!");
+    });
+  </script>
 </body>
 </html>
