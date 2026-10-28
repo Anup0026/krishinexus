@@ -1,4 +1,3 @@
-
 # Dependencies
 node_modules/
 
@@ -14,20 +13,28 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# Build output
+# Build and test outputs
 dist/
 build/
 coverage/
+.cache/
 
 # Operating system files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Editor settings
-.vscode/
+# Editor / IDE settings
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
 
-# Temporary files
+# Temporary & backup files
 *.tmp
 *.temp
+*.swp
+*.bak
