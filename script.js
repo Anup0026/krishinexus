@@ -189,7 +189,7 @@
 
     let LANGUAGE = localStorage.getItem("kn_language") || "English";
     let ROLE = localStorage.getItem("kn_active_role") || "farmer";
-    let generatedOtp = "";
+
 
     function t(key) {
       return (I18N[LANGUAGE] && I18N[LANGUAGE][key]) || I18N["English"][key] || key;
@@ -967,13 +967,6 @@
     /* ==========================================================================
        12. RANDOM 6-DIGIT OTP VERIFICATION & PROFILES
        ========================================================================== */
-    function sendRandomOtp() {
-      generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
-      toast(`📲 Demo OTP is: ${generatedOtp} (Valid for registration)`);
-      const field = document.getElementById("regOtpInput");
-      if (field) field.focus();
-    }
-
     function registerModal(type = ROLE, presetState = "") {
       const isFarmer = type === "farmer";
       const p = getCurrentProfile();
@@ -1024,15 +1017,7 @@
             </div>
           `}
 
-          <!-- Random 6-digit OTP Verification -->
-          <div class="field full" style="border-top:1px dashed #c0d8c4;padding-top:10px;margin-top:6px;">
-            <label><b>6-Digit Phone OTP Verification *</b></label>
-            <div style="display:flex;gap:8px;">
-              <input id="regOtpInput" placeholder="${t("otpPlaceholder")}" style="max-width:200px;">
-              <button type="button" class="btn secondary" onclick="sendRandomOtp()">📩 ${t("sendOtp")}</button>
-            </div>
-            <small class="muted">Click "Send OTP" to receive a 6-digit demo code in your browser toast.</small>
-          </div>
+          <div class="field full"><small class="muted">Email verification is required before saving a farmer or agricultural worker profile.</small></div>
         </div>
 
         <div class="actions">
@@ -1042,27 +1027,18 @@
       `);
     }
 
-    function submitProfileRegistration(type) {
+    async function submitProfileRegistration(type) {
+      const authUser = await window.KrishiAuth?.getVerifiedUser();
+      if (!authUser) { toast("Please log in with a verified email before saving a profile."); return; }
       const name = document.getElementById("rName")?.value.trim();
       const mobile = document.getElementById("rMobile")?.value.trim();
       const village = document.getElementById("rVillage")?.value.trim();
       const district = document.getElementById("rDistrict")?.value.trim();
       const state = document.getElementById("rState")?.value;
       const crop = document.getElementById("rCrop")?.value;
-      const enteredOtp = document.getElementById("regOtpInput")?.value.trim();
 
       if (!name || !mobile || !village || !district) {
         toast("Please fill in Name, Mobile, Village, and District!");
-        return;
-      }
-
-      if (!generatedOtp) {
-        toast("Please click 'Send OTP' first to generate your verification code.");
-        return;
-      }
-
-      if (enteredOtp !== generatedOtp) {
-        toast("❌ Incorrect 6-digit OTP! Please check the code shown in the toast.");
         return;
       }
 
