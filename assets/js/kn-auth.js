@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Supabase Project URL + PUBLIC anon/publishable key only. Never expose service_role.
-const SUPABASE_URL="jodmltdihoojhhfwaaio";
+const SUPABASE_URL="https://jodmltdihoojhhfwaaio.supabase.co";
 const SUPABASE_PUBLIC_KEY="sb_publishable_xJywoiXcrJfVsrqjUJY3aA_K2o43ALP";
 const configured=!SUPABASE_URL.includes("YOUR_PROJECT_REF")&&!SUPABASE_PUBLIC_KEY.includes("YOUR_SUPABASE");
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
