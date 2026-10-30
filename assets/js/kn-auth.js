@@ -13,12 +13,12 @@ const SUPABASE_URL =
 const SUPABASE_PUBLIC_KEY =
     "sb_publishable_xJywoiXcrJfVsrqjUJY3aA_K2o43ALP";
 
-// Automatically uses the URL from which the application
-// was opened. Works with localhost, LAN IP and deployed URL.
-const AUTH_REDIRECT_URL = new URL(
-    window.location.pathname,
-    window.location.origin
-).href;
+// Always send email links to the deployed application.
+// A localhost redirect only works on the computer running the
+// local server, so verification links opened from another device
+// or after the server stops would fail.
+const PRODUCTION_APP_URL = "https://krishinexus.vercel.app/";
+const AUTH_REDIRECT_URL = PRODUCTION_APP_URL;
 
 const configured =
     SUPABASE_URL.startsWith("https://") &&
@@ -511,14 +511,16 @@ function render() {
                 });
 
             if (error) {
-                msg(error.message, "error");
-            } else {
-
+                console.error("Supabase resend verification error:", error);
                 msg(
-                    "If an unverified account exists, a new verification email has been sent.",
+                    error.message || "Supabase could not send the verification email. Please try again later.",
+                    "error"
+                );
+            } else {
+                msg(
+                    "If this email has an unverified account, a new verification email has been requested. Check your inbox and spam folder. If nothing arrives, check Supabase email/SMTP settings.",
                     "success"
                 );
-
             }
 
         } catch (error) {
@@ -576,8 +578,20 @@ function render() {
 
             if (error) {
 
+                const message = error.message || "";
+
+                if (
+                    error.code === "email_not_confirmed" ||
+                    message.toLowerCase().includes("email not confirmed")
+                ) {
+                    return msg(
+                        "Your account exists, but your email is not verified. Use 'Resend verification email' below, then check your inbox and spam folder.",
+                        "error"
+                    );
+                }
+
                 return msg(
-                    "Login failed. Check your email and password, and ensure your email is verified.",
+                    message || "Login failed. Check your email and password.",
                     "error"
                 );
 
@@ -718,43 +732,43 @@ function render() {
 
             signupForm.reset();
 
-
-            // Some Supabase configurations return a
-            // session immediately when confirmation is
-            // disabled. Only verified users can proceed.
-
+            // Supabase deliberately returns an empty identities
+            // array for an email that already has an account.
+            // Do not tell the user that a new account was created.
             if (
-                data.session &&
-                data.user?.email_confirmed_at
+                Array.isArray(data.user?.identities) &&
+                data.user.identities.length === 0
             ) {
-
-                await activate(data.user);
-
+                form("login");
+                overlay.querySelector("#kn-login-email").value = email;
+                msg(
+                    "An account already exists with this email. Log in, or use 'Resend verification email' if it has not been verified.",
+                    "error"
+                );
                 return;
-
             }
 
+            // Some Supabase configurations return a session
+            // immediately when email confirmation is disabled.
+            if (data.session && data.user?.email_confirmed_at) {
+                await activate(data.user);
+                return;
+            }
 
             form("login");
-
-
-            overlay.querySelector(
-                "#kn-login-email"
-            ).value = email;
-
-
+            overlay.querySelector("#kn-login-email").value = email;
             msg(
-                "Account created! Check your email and click the verification link. Then log in.",
+                "Account created. A verification link has been requested for your email. Check your inbox and spam folder; then return here to log in.",
                 "success"
             );
 
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Supabase signup error:", error);
 
             msg(
-                "Unable to create your account. Please try again.",
+                error?.message || "Unable to create your account. Check your connection and Supabase configuration, then try again.",
                 "error"
             );
 
