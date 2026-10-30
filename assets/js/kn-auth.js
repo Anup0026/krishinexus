@@ -624,6 +624,10 @@ function render() {
 
         e.preventDefault();
 
+        // Keep a stable reference before the first await.
+        // Event.currentTarget becomes null after the handler yields.
+        const signupForm = e.currentTarget;
+
         const name = overlay.querySelector(
             "#kn-name"
         ).value.trim();
@@ -712,7 +716,7 @@ function render() {
             }
 
 
-            e.currentTarget.reset();
+            signupForm.reset();
 
 
             // Some Supabase configurations return a
